@@ -1,7 +1,10 @@
 package com.sqc.academy.controller;
 
 import com.sqc.academy.Student;
-import org.springframework.http.HttpStatus;
+import com.sqc.academy.dto.ApiResponse;
+import com.sqc.academy.exception.AppException;
+import com.sqc.academy.exception.ErrorCode;
+import com.sqc.academy.util.JsonResponse;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -24,24 +27,24 @@ public class StudentController {
     // API -> list
     // @RequestMapping(value = "/students", method = RequestMethod.GET) // N số nhiều
     @GetMapping
-    public ResponseEntity<List<Student>> getList() {
-        return ResponseEntity.ok(students);
+    public ResponseEntity<ApiResponse<List<Student>>> getList() {
+        return JsonResponse.ok(students);
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<Student> getById(@PathVariable("id") UUID id) {
+    public ResponseEntity<ApiResponse<Student>> getById(@PathVariable("id") UUID id) {
         return students.stream()
                 .filter(s -> s.getId().equals(id))
                 .findFirst()
-                .map(ResponseEntity::ok)
-                .orElse(ResponseEntity.notFound().build()); // Java 8
+                .map(JsonResponse::ok)
+                .orElseThrow(() -> new AppException(ErrorCode.STUDENT_NOT_EXIST)); // Java 8
     }
 
     @PostMapping
-    public ResponseEntity<Student> create(@RequestBody Student student) {
+    public ResponseEntity<ApiResponse<Student>> create(@RequestBody Student student) {
         student.setId(UUID.randomUUID());
         students.add(student);
 
-        return ResponseEntity.status(HttpStatus.CREATED).body(student);
+        return JsonResponse.created(student);
     }
 }
